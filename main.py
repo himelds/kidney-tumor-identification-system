@@ -7,6 +7,10 @@ from src.pipeline.stage_02_data_validation import (
     STAGE_NAME as DATA_VALIDATION_STAGE_NAME,
 )
 from src.pipeline.stage_02_data_validation import DataValidationTrainingPipeline
+from src.pipeline.stage_03_data_transformation import (
+    STAGE_NAME as DATA_TRANSFORMATION_STAGE_NAME,
+)
+from src.pipeline.stage_03_data_transformation import DataTransformationTrainingPipeline
 from src.utils.exception import KidneyTumorException
 from src.utils.logger import logger
 
@@ -31,7 +35,6 @@ def get_pipeline_stages() -> list[PipelineStage]:
     Return the training pipeline stages that are currently implemented.
 
     Add the remaining stages here after their corresponding files are written:
-    - stage_03_data_transformation.py
     - stage_04_prepare_base_model.py
     - stage_05_model_training.py
     - stage_06_model_evaluation.py
@@ -44,6 +47,10 @@ def get_pipeline_stages() -> list[PipelineStage]:
         (
             DATA_VALIDATION_STAGE_NAME,
             DataValidationTrainingPipeline().main,
+        ),
+        (
+            DATA_TRANSFORMATION_STAGE_NAME,
+            DataTransformationTrainingPipeline().main,
         ),
     ]
 
