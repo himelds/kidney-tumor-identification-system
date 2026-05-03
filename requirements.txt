@@ -1,0 +1,46 @@
+# Deep Learning
+tensorflow
+tf-keras-vis
+
+# Data & ML
+numpy
+pandas
+scikit-learn
+opencv-python-headless
+Pillow
+pydicom
+
+# MLOps
+mlflow
+dvc[gdrive]
+evidently
+
+# Config & utilities
+PyYAML
+python-box
+ensure
+python-dotenv
+
+# API
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+celery
+redis
+
+# Streamlit
+streamlit
+plotly
+
+# Report generation
+reportlab
+
+# Hugging Face
+huggingface-hub
+
+# Database
+supabase
+
+# HTTP
+requests

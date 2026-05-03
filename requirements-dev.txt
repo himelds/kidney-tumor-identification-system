@@ -1,0 +1,18 @@
+-r requirements.txt
+
+# Testing
+pytest
+pytest-cov
+httpx
+
+# Code quality
+black
+flake8
+isort
+pre-commit
+
+# Notebooks
+jupyter
+ipykernel
+matplotlib
+seaborn
