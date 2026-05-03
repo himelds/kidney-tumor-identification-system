@@ -1,0 +1,154 @@
+import sys
+from pathlib import Path
+
+from src.constants import CONFIG_FILE_PATH, PARAMS_FILE_PATH
+from src.entity.config_entity import (
+    DataIngestionConfig,
+    DataTransformationConfig,
+    DataValidationConfig,
+    DriftDetectionConfig,
+    ModelEvaluationConfig,
+    ModelTrainerConfig,
+    PredictionConfig,
+    PrepareBaseModelConfig,
+)
+from src.utils.common import create_directories, read_yaml
+from src.utils.exception import KidneyTumorException
+from src.utils.logger import logger
+
+
+class ConfigurationManager:
+    """
+    Central configuration manager.
+    Reads config.yaml and params.yaml once and provides
+    typed config objects for each pipeline stage.
+
+    Usage:
+        config = ConfigurationManager()
+        data_ingestion_config = config.get_data_ingestion_config()
+    """
+
+    def __init__(
+        self,
+        config_filepath: Path = CONFIG_FILE_PATH,
+        params_filepath: Path = PARAMS_FILE_PATH,
+    ):
+        try:
+            self.config = read_yaml(config_filepath)
+            self.params = read_yaml(params_filepath)
+            create_directories([self.config.artifacts_root])
+            logger.info("ConfigurationManager initialised successfully.")
+        except Exception as e:
+            raise KidneyTumorException(e, sys)
+
+    def get_data_ingestion_config(self) -> DataIngestionConfig:
+        config = self.config.data_ingestion
+        create_directories([config.root_dir])
+
+        return DataIngestionConfig(
+            root_dir=Path(config.root_dir),
+            kaggle_dataset=config.kaggle_dataset,
+            local_data_file=Path(config.local_data_file),
+            unzip_dir=Path(config.unzip_dir),
+        )
+
+    def get_data_validation_config(self) -> DataValidationConfig:
+        config = self.config.data_validation
+        create_directories([config.root_dir])
+
+        return DataValidationConfig(
+            root_dir=Path(config.root_dir),
+            valid_classes=config.valid_classes,
+            min_images_per_class=config.min_images_per_class,
+            allowed_extensions=config.allowed_extensions,
+            status_file=Path(config.status_file),
+        )
+
+    def get_data_transformation_config(self) -> DataTransformationConfig:
+        config = self.config.data_transformation
+        create_directories([config.root_dir])
+
+        return DataTransformationConfig(
+            root_dir=Path(config.root_dir),
+            data_dir=Path(config.data_dir),
+            image_size=config.image_size,
+            train_split=config.train_split,
+            val_split=config.val_split,
+            test_split=config.test_split,
+            batch_size=config.batch_size,
+        )
+
+    def get_prepare_base_model_config(self) -> PrepareBaseModelConfig:
+        config = self.config.prepare_base_model
+        create_directories([config.root_dir])
+
+        return PrepareBaseModelConfig(
+            root_dir=Path(config.root_dir),
+            base_model_path=Path(config.base_model_path),
+            updated_base_model_path=Path(config.updated_base_model_path),
+            image_size=config.image_size,
+            include_top=config.include_top,
+            weights=config.weights,
+            classes=config.classes,
+        )
+
+    def get_model_trainer_config(self) -> ModelTrainerConfig:
+        config = self.config.model_trainer
+        params = self.params
+        create_directories([config.root_dir])
+
+        return ModelTrainerConfig(
+            root_dir=Path(config.root_dir),
+            trained_model_path=Path(config.trained_model_path),
+            checkpoint_path=config.checkpoint_path,
+            phase1_epochs=params.TRAINING.phase1_epochs,
+            phase1_learning_rate=params.TRAINING.phase1_learning_rate,
+            phase2_epochs=params.TRAINING.phase2_epochs,
+            phase2_learning_rate=params.TRAINING.phase2_learning_rate,
+            fine_tune_from_layer=params.TRAINING.fine_tune_from_layer,
+            batch_size=params.TRAINING.batch_size,
+            dropout_rate=params.TRAINING.dropout_rate,
+            dense_units=params.TRAINING.dense_units,
+            early_stopping_patience=params.CALLBACKS.early_stopping_patience,
+            reduce_lr_factor=params.CALLBACKS.reduce_lr_factor,
+            reduce_lr_patience=params.CALLBACKS.reduce_lr_patience,
+            reduce_lr_min_lr=params.CALLBACKS.reduce_lr_min_lr,
+        )
+
+    def get_model_evaluation_config(self) -> ModelEvaluationConfig:
+        config = self.config.model_evaluation
+        params = self.params
+        create_directories([config.root_dir])
+
+        return ModelEvaluationConfig(
+            root_dir=Path(config.root_dir),
+            metrics_path=Path(config.metrics_path),
+            confusion_matrix_path=Path(config.confusion_matrix_path),
+            roc_curve_path=Path(config.roc_curve_path),
+            min_auc_threshold=params.EVALUATION.min_auc_threshold,
+            min_sensitivity_threshold=params.EVALUATION.min_sensitivity_threshold,
+        )
+
+    def get_prediction_config(self) -> PredictionConfig:
+        config = self.config.prediction
+        gradcam_config = self.config.gradcam
+
+        return PredictionConfig(
+            model_path=Path(config.model_path),
+            mc_dropout_iterations=config.mc_dropout_iterations,
+            uncertainty_threshold=config.uncertainty_threshold,
+            confidence_threshold=config.confidence_threshold,
+            gradcam_last_conv_layer=gradcam_config.last_conv_layer_name,
+            gradcam_alpha=gradcam_config.alpha,
+        )
+
+    def get_drift_detection_config(self) -> DriftDetectionConfig:
+        config = self.config.drift_detection
+        create_directories([config.root_dir])
+
+        return DriftDetectionConfig(
+            root_dir=Path(config.root_dir),
+            reference_data_path=Path(config.reference_data_path),
+            current_data_path=Path(config.current_data_path),
+            drift_threshold=config.drift_threshold,
+        )
