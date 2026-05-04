@@ -44,8 +44,12 @@ class PrepareBaseModelConfig:
 @dataclass(frozen=True)
 class ModelTrainerConfig:
     root_dir: Path
+    base_model_path: Path
     trained_model_path: Path
     checkpoint_path: str
+    csv_log_path: Path
+    history_plot_path: Path
+    class_weights_path: Path
     # Phase 1
     phase1_epochs: int
     phase1_learning_rate: float

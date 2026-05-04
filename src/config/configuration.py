@@ -99,8 +99,12 @@ class ConfigurationManager:
 
         return ModelTrainerConfig(
             root_dir=Path(config.root_dir),
+            base_model_path=Path(config.base_model_path),
             trained_model_path=Path(config.trained_model_path),
             checkpoint_path=config.checkpoint_path,
+            csv_log_path=Path(config.csv_log_path),
+            history_plot_path=Path(config.history_plot_path),
+            class_weights_path=Path(config.class_weights_path),
             phase1_epochs=params.TRAINING.phase1_epochs,
             phase1_learning_rate=params.TRAINING.phase1_learning_rate,
             phase2_epochs=params.TRAINING.phase2_epochs,

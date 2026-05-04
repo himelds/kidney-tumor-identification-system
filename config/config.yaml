@@ -40,8 +40,12 @@ prepare_base_model:
 
 model_trainer:
   root_dir: artifacts/model_trainer
+  base_model_path: artifacts/prepare_base_model/base_model_updated.h5
   trained_model_path: artifacts/model_trainer/model.h5
   checkpoint_path: artifacts/model_trainer/checkpoints/model_epoch_{epoch:02d}.h5
+  csv_log_path: artifacts/model_trainer/training_log.csv
+  history_plot_path: artifacts/model_trainer/training_history.png
+  class_weights_path: artifacts/model_trainer/class_weights.json
 
 model_evaluation:
   root_dir: artifacts/model_evaluation
