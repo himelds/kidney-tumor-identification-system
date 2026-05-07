@@ -15,6 +15,12 @@ from src.pipeline.stage_04_prepare_base_model import (
     STAGE_NAME as PREPARE_BASE_MODEL_STAGE_NAME,
 )
 from src.pipeline.stage_04_prepare_base_model import PrepareBaseModelTrainingPipeline
+from src.pipeline.stage_05_model_training import STAGE_NAME as MODEL_TRAINING_STAGE_NAME
+from src.pipeline.stage_05_model_training import ModelTrainingPipeline
+from src.pipeline.stage_06_model_evaluation import (
+    STAGE_NAME as MODEL_EVALUATION_STAGE_NAME,
+)
+from src.pipeline.stage_06_model_evaluation import ModelEvaluationPipeline
 from src.utils.exception import KidneyTumorException
 from src.utils.logger import logger
 
@@ -37,10 +43,6 @@ def run_stage(stage_name: str, stage_callable: Callable[[], None]) -> None:
 def get_pipeline_stages() -> list[PipelineStage]:
     """
     Return the training pipeline stages that are currently implemented.
-
-    Add the remaining stages here after their corresponding files are written:
-    - stage_05_model_training.py
-    - stage_06_model_evaluation.py
     """
     return [
         (
@@ -58,6 +60,14 @@ def get_pipeline_stages() -> list[PipelineStage]:
         (
             PREPARE_BASE_MODEL_STAGE_NAME,
             PrepareBaseModelTrainingPipeline().main,
+        ),
+        (
+            MODEL_TRAINING_STAGE_NAME,
+            ModelTrainingPipeline().main,
+        ),
+        (
+            MODEL_EVALUATION_STAGE_NAME,
+            ModelEvaluationPipeline().main,
         ),
     ]
 
