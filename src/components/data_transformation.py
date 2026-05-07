@@ -112,8 +112,7 @@ class DataTransformation:
         Build TensorFlow datasets from the split directories.
 
         Returns:
-            Tuple of (train_ds, val_ds, test_ds) with pixel values rescaled to
-            the [0, 1] range.
+            Tuple of (train_ds, val_ds, test_ds) preprocessed for EfficientNet.
         """
         try:
             if not all(path.exists() for path in self.split_dirs.values()):
@@ -146,8 +145,10 @@ class DataTransformation:
             seed=self.RANDOM_SEED,
         )
 
+        preprocess_input = tf.keras.applications.efficientnet.preprocess_input
+
         return dataset.map(
-            lambda images, labels: (tf.cast(images, tf.float32) / 255.0, labels),
+            lambda images, labels: (preprocess_input(tf.cast(images, tf.float32)), labels),
             num_parallel_calls=tf.data.AUTOTUNE,
         ).prefetch(tf.data.AUTOTUNE)
 
