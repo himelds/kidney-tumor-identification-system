@@ -15,11 +15,12 @@ class MLflowEpochLogger:
     Lightweight Keras callback wrapper that logs per-epoch metrics to MLflow.
     """
 
-    def __init__(self, mlflow_module, phase_name: str):
-        self.mlflow = mlflow_module
+    def __init__(self, phase_name: str):
         self.phase_name = phase_name
 
     def on_epoch_end(self, epoch: int, logs: dict[str, float] | None = None) -> None:
+        import mlflow
+
         logs = logs or {}
         step = epoch + 1
         metric_names = {
@@ -31,7 +32,7 @@ class MLflowEpochLogger:
 
         for keras_name, mlflow_name in metric_names.items():
             if keras_name in logs:
-                self.mlflow.log_metric(mlflow_name, float(logs[keras_name]), step=step)
+                mlflow.log_metric(mlflow_name, float(logs[keras_name]), step=step)
 
 
 class ModelTrainer:
@@ -46,8 +47,6 @@ class ModelTrainer:
     ):
         self.config = config
         self.data_transformation_config = data_transformation_config
-        self.tf = self._get_tensorflow()
-        self.mlflow = self._get_mlflow()
         self.model = None
         self.train_ds = None
         self.val_ds = None
@@ -55,6 +54,10 @@ class ModelTrainer:
 
     def run(self) -> dict[str, Any]:
         try:
+            import mlflow
+            mlflow.set_experiment("kidney_tumor_model_training")
+            self.mlflow = mlflow
+
             create_directories([self.config.root_dir, Path(self.config.checkpoint_path).parent])
 
             self.train_ds, self.val_ds, self.test_ds = self._load_datasets()
@@ -64,7 +67,7 @@ class ModelTrainer:
             loaded_model = self._load_prepared_model()
             self.model = self._build_augmented_model(loaded_model)
 
-            with self.mlflow.start_run(run_name="model_training"):
+            with mlflow.start_run(run_name="model_training"):
                 phase1_history = self._train_phase(
                     phase_name="phase1",
                     epochs=self.config.phase1_epochs,
@@ -98,27 +101,31 @@ class ModelTrainer:
         return data_transformation.get_train_val_test_datasets()
 
     def _load_prepared_model(self):
+        import tensorflow as tf
+
         if not self.config.base_model_path.exists():
             raise FileNotFoundError(f"Prepared model not found: {self.config.base_model_path}")
 
         logger.info("Loading prepared model from %s", self.config.base_model_path)
-        return self.tf.keras.models.load_model(self.config.base_model_path)
+        return tf.keras.models.load_model(self.config.base_model_path)
 
     def _build_augmented_model(self, loaded_model):
+        import tensorflow as tf
+
         input_shape = tuple(self.data_transformation_config.image_size[:2]) + (3,)
 
         base_model = self._find_base_model(loaded_model)
         if base_model is not None:
             base_model.trainable = False
 
-        inputs = self.tf.keras.Input(shape=input_shape, name="augmented_input")
-        x = self.tf.keras.layers.RandomFlip("horizontal", name="random_flip")(inputs)
-        x = self.tf.keras.layers.RandomRotation(15 / 360, name="random_rotation")(x)
-        x = self.tf.keras.layers.RandomZoom(0.10, name="random_zoom")(x)
-        x = self.tf.keras.layers.RandomBrightness(0.15, name="random_brightness")(x)
+        inputs = tf.keras.Input(shape=input_shape, name="augmented_input")
+        x = tf.keras.layers.RandomFlip("horizontal", name="random_flip")(inputs)
+        x = tf.keras.layers.RandomRotation(15 / 360, name="random_rotation")(x)
+        x = tf.keras.layers.RandomZoom(0.10, name="random_zoom")(x)
+        x = tf.keras.layers.RandomBrightness(0.15, name="random_brightness")(x)
         outputs = loaded_model(x)
 
-        model = self.tf.keras.Model(inputs=inputs, outputs=outputs, name="augmented_kidney_model")
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name="augmented_kidney_model")
         logger.info("Augmentation layers attached before the prepared EfficientNetB4 model.")
         return model
 
@@ -129,8 +136,10 @@ class ModelTrainer:
         learning_rate: float,
         class_weights: dict[int, float],
     ):
+        import tensorflow as tf
+
         self.model.compile(
-            optimizer=self.tf.keras.optimizers.Adam(learning_rate=learning_rate),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
             loss="categorical_crossentropy",
             metrics=["accuracy"],
         )
@@ -153,13 +162,15 @@ class ModelTrainer:
             return history
 
     def _get_callbacks(self, phase_name: str):
+        import tensorflow as tf
+
         checkpoint_path = self._phase_checkpoint_path(phase_name)
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
         csv_append = phase_name != "phase1"
 
         return [
-            self.tf.keras.callbacks.ModelCheckpoint(
+            tf.keras.callbacks.ModelCheckpoint(
                 filepath=str(checkpoint_path),
                 monitor="val_accuracy",
                 mode="max",
@@ -167,20 +178,20 @@ class ModelTrainer:
                 save_weights_only=False,
                 verbose=1,
             ),
-            self.tf.keras.callbacks.EarlyStopping(
+            tf.keras.callbacks.EarlyStopping(
                 monitor="val_loss",
                 patience=self.config.early_stopping_patience,
                 restore_best_weights=True,
                 verbose=1,
             ),
-            self.tf.keras.callbacks.ReduceLROnPlateau(
+            tf.keras.callbacks.ReduceLROnPlateau(
                 monitor="val_loss",
                 factor=self.config.reduce_lr_factor,
                 patience=self.config.reduce_lr_patience,
                 min_lr=self.config.reduce_lr_min_lr,
                 verbose=1,
             ),
-            self.tf.keras.callbacks.CSVLogger(
+            tf.keras.callbacks.CSVLogger(
                 filename=str(self.config.csv_log_path),
                 append=csv_append,
             ),
@@ -188,21 +199,27 @@ class ModelTrainer:
         ]
 
     def _keras_mlflow_callback(self, phase_name: str):
-        logger_callback = MLflowEpochLogger(self.mlflow, phase_name)
+        import tensorflow as tf
 
-        class KerasMLflowCallback(self.tf.keras.callbacks.Callback):
+        class KerasMLflowCallback(tf.keras.callbacks.Callback):
+            def __init__(callback_self, callback_phase_name: str):
+                super().__init__()
+                callback_self.logger = MLflowEpochLogger(callback_phase_name)
+
             def on_epoch_end(callback_self, epoch, logs=None):
-                logger_callback.on_epoch_end(epoch, logs)
+                callback_self.logger.on_epoch_end(epoch, logs)
 
-        return KerasMLflowCallback()
+        return KerasMLflowCallback(phase_name)
 
     def _calculate_class_weights(self, train_ds) -> dict[int, float]:
+        import tensorflow as tf
+
         class_names = self._get_class_names()
         class_count = len(class_names)
         class_counts = {index: 0 for index in range(class_count)}
 
         for _, labels in train_ds:
-            batch_counts = self.tf.reduce_sum(labels, axis=0).numpy()
+            batch_counts = tf.reduce_sum(labels, axis=0).numpy()
             for index, count in enumerate(batch_counts):
                 class_counts[index] = class_counts.get(index, 0) + int(count)
 
@@ -238,6 +255,8 @@ class ModelTrainer:
         )
 
     def _unfreeze_fine_tuning_layers(self, loaded_model) -> None:
+        import tensorflow as tf
+
         base_model = self._find_base_model(loaded_model)
         if base_model is None:
             logger.warning("No nested base model found. Fine tuning will train the loaded model.")
@@ -250,14 +269,16 @@ class ModelTrainer:
 
         fine_tune_from = self.config.fine_tune_from_layer
         for layer in base_model.layers[fine_tune_from:]:
-            if not isinstance(layer, self.tf.keras.layers.BatchNormalization):
+            if not isinstance(layer, tf.keras.layers.BatchNormalization):
                 layer.trainable = True
 
         logger.info("Unfroze EfficientNetB4 layers from index %s for phase 2.", fine_tune_from)
 
     def _find_base_model(self, model):
+        import tensorflow as tf
+
         for layer in model.layers:
-            if isinstance(layer, self.tf.keras.Model) and "efficientnet" in layer.name.lower():
+            if isinstance(layer, tf.keras.Model) and "efficientnet" in layer.name.lower():
                 return layer
         return None
 

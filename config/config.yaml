@@ -41,8 +41,8 @@ prepare_base_model:
 model_trainer:
   root_dir: artifacts/model_trainer
   base_model_path: artifacts/prepare_base_model/base_model_updated.h5
-  trained_model_path: artifacts/model_trainer/model.h5
-  checkpoint_path: artifacts/model_trainer/checkpoints/model_epoch_{epoch:02d}.h5
+  trained_model_path: artifacts/model_trainer/model.keras
+  checkpoint_path: artifacts/model_trainer/checkpoints/model_epoch_{epoch:02d}.keras
   csv_log_path: artifacts/model_trainer/training_log.csv
   history_plot_path: artifacts/model_trainer/training_history.png
   class_weights_path: artifacts/model_trainer/class_weights.json
@@ -66,7 +66,7 @@ drift_detection:
   drift_threshold: 0.15
 
 prediction:
-  model_path: artifacts/model_trainer/model.h5
+  model_path: artifacts/model_trainer/model.keras
   mc_dropout_iterations: 20
   uncertainty_threshold: 0.15
   confidence_threshold: 0.70
