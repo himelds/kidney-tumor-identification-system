@@ -1,4 +1,5 @@
 import sys
+import os
 from typing import Callable
 
 from src.pipeline.stage_01_data_ingestion import STAGE_NAME as DATA_INGESTION_STAGE_NAME
@@ -44,7 +45,7 @@ def get_pipeline_stages() -> list[PipelineStage]:
     """
     Return the training pipeline stages that are currently implemented.
     """
-    return [
+    stages = [
         (
             DATA_INGESTION_STAGE_NAME,
             DataIngestionTrainingPipeline().main,
@@ -61,15 +62,23 @@ def get_pipeline_stages() -> list[PipelineStage]:
             PREPARE_BASE_MODEL_STAGE_NAME,
             PrepareBaseModelTrainingPipeline().main,
         ),
-        (
-            MODEL_TRAINING_STAGE_NAME,
-            ModelTrainingPipeline().main,
-        ),
-        (
-            MODEL_EVALUATION_STAGE_NAME,
-            ModelEvaluationPipeline().main,
-        ),
     ]
+
+    if os.getenv("RUN_TRAINING", "false").lower() == "true":
+        stages.extend(
+            [
+                (
+                    MODEL_TRAINING_STAGE_NAME,
+                    ModelTrainingPipeline().main,
+                ),
+                (
+                    MODEL_EVALUATION_STAGE_NAME,
+                    ModelEvaluationPipeline().main,
+                ),
+            ]
+        )
+
+    return stages
 
 
 def main() -> None:
