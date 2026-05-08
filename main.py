@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 from typing import Callable
 
 from src.pipeline.stage_01_data_ingestion import STAGE_NAME as DATA_INGESTION_STAGE_NAME

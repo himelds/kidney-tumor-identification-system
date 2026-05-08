@@ -55,6 +55,7 @@ class ModelTrainer:
     def run(self) -> dict[str, Any]:
         try:
             import mlflow
+
             mlflow.set_experiment("kidney_tumor_model_training")
             self.mlflow = mlflow
 

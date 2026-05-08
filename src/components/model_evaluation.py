@@ -35,12 +35,14 @@ class ModelEvaluation:
                 roc_curve,
             )
 
-            create_directories([
-                self.config.root_dir,
-                Path(self.config.metrics_path).parent,
-                Path(self.config.confusion_matrix_path).parent,
-                Path(self.config.roc_curve_path).parent,
-            ])
+            create_directories(
+                [
+                    self.config.root_dir,
+                    Path(self.config.metrics_path).parent,
+                    Path(self.config.confusion_matrix_path).parent,
+                    Path(self.config.roc_curve_path).parent,
+                ]
+            )
 
             # ── Load model ──────────────────────────────────────────────
             model = self._load_model(tf)
@@ -55,9 +57,7 @@ class ModelEvaluation:
             y_pred = np.argmax(y_pred_proba, axis=1)
 
             # ── Metrics ──────────────────────────────────────────────────
-            metrics = self._calculate_metrics(
-                y_true, y_pred, y_pred_proba, classification_report
-            )
+            metrics = self._calculate_metrics(y_true, y_pred, y_pred_proba, classification_report)
             self._save_metrics(metrics)
 
             # ── Plots ────────────────────────────────────────────────────
@@ -80,8 +80,9 @@ class ModelEvaluation:
 
         if not model_path.exists():
             logger.info("Local model not found. Downloading from Hugging Face Hub.")
-            from huggingface_hub import hf_hub_download
             import os
+
+            from huggingface_hub import hf_hub_download
 
             model_path = hf_hub_download(
                 repo_id=os.environ.get("HF_REPO_ID", "Himel000/kidney-tumor-efficientnetb4"),
@@ -135,6 +136,7 @@ class ModelEvaluation:
 
         # Specificity — mean across classes
         from sklearn.metrics import confusion_matrix as cm_fn
+
         cm = cm_fn(y_true, y_pred)
         specificities = []
         for i in range(len(self.CLASS_NAMES)):
@@ -171,9 +173,7 @@ class ModelEvaluation:
         return metrics
 
     def _save_metrics(self, metrics: dict) -> None:
-        serializable = {
-            k: v for k, v in metrics.items() if k != "classification_report"
-        }
+        serializable = {k: v for k, v in metrics.items() if k != "classification_report"}
         serializable["classification_report"] = metrics.get("classification_report", {})
 
         metrics_path = Path(self.config.metrics_path)

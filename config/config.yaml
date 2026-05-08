@@ -81,4 +81,3 @@ report:
 model_hub:
   repo_id: "Himel000/kidney-tumor-efficientnetb4"
   model_filename: "model.keras"
-  
