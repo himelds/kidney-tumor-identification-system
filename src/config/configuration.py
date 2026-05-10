@@ -7,10 +7,12 @@ from src.entity.config_entity import (
     DataTransformationConfig,
     DataValidationConfig,
     DriftDetectionConfig,
+    GradCAMConfig,
     ModelEvaluationConfig,
     ModelTrainerConfig,
     PredictionConfig,
     PrepareBaseModelConfig,
+    UncertaintyConfig,
 )
 from src.utils.common import create_directories, read_yaml
 from src.utils.exception import KidneyTumorException
@@ -156,3 +158,61 @@ class ConfigurationManager:
             current_data_path=Path(config.current_data_path),
             drift_threshold=config.drift_threshold,
         )
+
+    def get_gradcam_config(self) -> GradCAMConfig:
+        """Build configuration for Grad-CAM component.
+        Combines:
+        config.gradcam section (visualization settings)
+        - config.prediction section (model path)
+        - config.model_hub section (Hugging Face info)
+        - params.IMAGE section (image dimensions)
+        - params.CLASSES (class labels)
+        """
+        config = self.config.gradcam
+        prediction_config = self.config.prediction
+        model_hub_config = self.config.model_hub
+        params = self.params
+
+        # Ensure output directory exists
+        create_directories([config.root_dir])
+        gradcam_config = GradCAMConfig(
+            root_dir=Path(config.root_dir),
+            model_path=Path(prediction_config.model_path),
+            hf_repo_id=model_hub_config.repo_id,
+            hf_model_filename=model_hub_config.model_filename,
+            last_conv_layer_name=config.last_conv_layer_name,
+            colormap=config.colormap,
+            alpha=config.alpha,
+            image_size=(params.IMAGE.size, params.IMAGE.size),
+            class_names=params.CLASSES,
+            nested_wrapper_name="kidney_tumor_efficientnetb4",
+            nested_backbone_name="efficientnetb4",
+        )
+
+        return gradcam_config
+
+    def get_uncertainty_config(self) -> UncertaintyConfig:
+        """Build configuration for MC Dropout uncertainty component."""
+        config = self.config.prediction
+        model_hub_config = self.config.model_hub
+        model_hub_config = self.config.model_hub
+        params = self.params
+
+        # Output directory for uncertainty artifacts
+        output_dir = Path("artifacts/uncertainty")
+        create_directories([str(output_dir)])
+
+        uncertainty_config = UncertaintyConfig(
+            root_dir=output_dir,
+            model_path=Path(config.model_path),
+            hf_repo_id=model_hub_config.repo_id,
+            hf_model_filename=model_hub_config.model_filename,
+            mc_iterations=config.mc_dropout_iterations,
+            uncertainty_threshold=config.uncertainty_threshold,
+            confidence_threshold=config.confidence_threshold,
+            image_size=(params.IMAGE.size, params.IMAGE.size),
+            class_names=params.CLASSES,
+            nested_wrapper_name="kidney_tumor_efficientnetb4",
+        )
+
+        return uncertainty_config

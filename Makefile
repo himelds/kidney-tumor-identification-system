@@ -2,7 +2,6 @@
 
 # Setup
 setup:
-	python template.py
 	cp .env.example .env
 	@echo "Project structure created. Fill in your .env file."
 

@@ -41,7 +41,7 @@ IMAGE:
   clahe_tile_grid_size: [8, 8]
 
 CLASSES:
-  - Normal
   - Cyst
-  - Tumor
+  - Normal
   - Stone
+  - Tumor

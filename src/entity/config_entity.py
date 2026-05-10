@@ -94,3 +94,61 @@ class DriftDetectionConfig:
     reference_data_path: Path
     current_data_path: Path
     drift_threshold: float
+
+
+@dataclass(frozen=True)
+class GradCAMConfig:
+    """Configuration for Grad-CAM heatmap generation component."""
+
+    # Output paths
+    root_dir: Path
+
+    # Model loading
+    model_path: Path
+    hf_repo_id: str
+    hf_model_filename: str
+
+    # Grad-CAM target layer (Phase 3 inspection confirmed)
+    last_conv_layer_name: str
+
+    # Visualization settings
+    colormap: str
+    alpha: float
+
+    # Image preprocessing
+    image_size: tuple
+
+    # Class info
+    class_names: list
+
+    # Nested architecture access path (from inspection findings)
+    # Required because EfficientNetB4 is double-nested in our model
+    nested_wrapper_name: str  # "kidney_tumor_efficientnetb4"
+    nested_backbone_name: str  # "efficientnetb4"
+
+
+@dataclass(frozen=True)
+class UncertaintyConfig:
+    """Configuration for MC Dropout uncertainty estimation component."""
+
+    # Output paths
+    root_dir: Path
+
+    # Model loading
+    model_path: Path
+    hf_repo_id: str
+    hf_model_filename: str
+
+    # MC Dropout settings
+    mc_iterations: int  # Number of forward passes (20)
+    uncertainty_threshold: float  # Above this, flag as uncertain (0.15)
+    confidence_threshold: float  # Below this, flag as low confidence (0.70)
+
+    # Image preprocessing
+    image_size: tuple
+
+    # Class info
+    class_names: list
+
+    # Model architecture (to access wrapper directly, skipping augmentation)
+    nested_wrapper_name: str  # "kidney_tumor_efficientnetb4"

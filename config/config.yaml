@@ -9,10 +9,10 @@ data_ingestion:
 data_validation:
   root_dir: artifacts/data_validation
   valid_classes:
-    - Normal
     - Cyst
-    - Tumor
+    - Normal
     - Stone
+    - Tumor
   min_images_per_class: 100
   allowed_extensions:
     - .jpg
@@ -57,7 +57,7 @@ gradcam:
   root_dir: artifacts/gradcam
   colormap: jet
   alpha: 0.4
-  last_conv_layer_name: block5_conv3
+  last_conv_layer_name: top_conv
 
 drift_detection:
   root_dir: reports/drift
