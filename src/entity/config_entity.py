@@ -152,3 +152,16 @@ class UncertaintyConfig:
 
     # Model architecture (to access wrapper directly, skipping augmentation)
     nested_wrapper_name: str  # "kidney_tumor_efficientnetb4"
+
+
+@dataclass(frozen=True)
+class ReportConfig:
+    """Configuration for PDF report generation."""
+
+    output_dir: Path
+    disclaimer: str
+    image_size: tuple
+    class_names: list
+    organization_name: str
+    confidence_threshold: float
+    uncertainty_threshold: float

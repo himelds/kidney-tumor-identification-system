@@ -12,6 +12,7 @@ from src.entity.config_entity import (
     ModelTrainerConfig,
     PredictionConfig,
     PrepareBaseModelConfig,
+    ReportConfig,
     UncertaintyConfig,
 )
 from src.utils.common import create_directories, read_yaml
@@ -216,3 +217,21 @@ class ConfigurationManager:
         )
 
         return uncertainty_config
+
+    def get_report_config(self) -> ReportConfig:
+        """Build configuration for report generation component."""
+        config = self.config.report
+        prediction_config = self.config.prediction
+        params = self.params
+
+        create_directories([config.output_dir])
+
+        return ReportConfig(
+            output_dir=Path(config.output_dir),
+            disclaimer=config.disclaimer,
+            image_size=(params.IMAGE.size, params.IMAGE.size),
+            class_names=params.CLASSES,
+            organization_name="Kidney CT Analysis System",
+            confidence_threshold=prediction_config.confidence_threshold,
+            uncertainty_threshold=prediction_config.uncertainty_threshold,
+        )
