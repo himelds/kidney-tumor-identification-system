@@ -1,17 +1,3 @@
-"""Unified prediction pipeline orchestrating all Phase 3 components.
-
-This pipeline takes a single CT image as input and runs:
-    1. GradCAM - class prediction + visual heatmap
-    2. UncertaintyEstimator - MC Dropout uncertainty metrics
-    3. ReportGenerator - optional PDF report
-
-Returns a unified PredictionResult containing all data needed for
-downstream consumers (FastAPI, Streamlit, CLI, batch processing).
-
-Memory optimization: GradCAM and Uncertainty share the loaded model
-to avoid duplicate model allocation in production deployments.
-"""
-
 import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime

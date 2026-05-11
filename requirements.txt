@@ -27,6 +27,7 @@ fastapi
 uvicorn[standard]
 python-multipart
 pydantic
+pydantic-settings
 celery
 redis
 
