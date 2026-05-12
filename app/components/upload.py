@@ -1,9 +1,10 @@
-import os
-
 import requests
 import streamlit as st
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api/v1")
+try:
+    API_URL = st.secrets["API_URL"]
+except Exception:
+    API_URL = "http://127.0.0.1:8000/api/v1"
 
 
 def render_upload_section():
