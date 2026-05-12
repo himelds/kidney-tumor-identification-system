@@ -22,7 +22,7 @@ class DataValidation:
         self.config = config
         self.valid_classes = [str(class_name) for class_name in config.valid_classes]
         self.allowed_extensions = {
-            extension.lower() if str(extension).startswith(".") else f".{str(extension).lower()}"
+            (extension.lower() if str(extension).startswith(".") else f".{str(extension).lower()}")
             for extension in config.allowed_extensions
         }
 

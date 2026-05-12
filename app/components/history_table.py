@@ -37,10 +37,12 @@ def render_history_table():
                         "ID": item["prediction_id"][:8] + "...",
                         "Predicted": item["predicted_class"],
                         "Confidence": f"{item['confidence']*100:.1f}%",
-                        "Uncertainty": f"{item['uncertainty_score']:.2f}"
-                        if item["is_uncertain"]
-                        else "Low",
-                        "Feedback": item["correct_class"] if item["feedback_received"] else "None",
+                        "Uncertainty": (
+                            f"{item['uncertainty_score']:.2f}" if item["is_uncertain"] else "Low"
+                        ),
+                        "Feedback": (
+                            item["correct_class"] if item["feedback_received"] else "None"
+                        ),
                     }
                 )
 

@@ -19,7 +19,11 @@ def render_upload_section():
             with st.spinner("Analyzing image..."):
                 try:
                     files = {
-                        "file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
+                        "file": (
+                            uploaded_file.name,
+                            uploaded_file.getvalue(),
+                            uploaded_file.type,
+                        )
                     }
                     response = requests.post(f"{API_URL}/predict", files=files)
 

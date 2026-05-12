@@ -168,7 +168,10 @@ class ReportGenerator:
 
         info_data = [
             ["Filename:", report_input.image_path.name],
-            ["Image Size:", f"{self.config.image_size[0]} x {self.config.image_size[1]} pixels"],
+            [
+                "Image Size:",
+                f"{self.config.image_size[0]} x {self.config.image_size[1]} pixels",
+            ],
             ["Channels:", "RGB (3 channels)"],
             ["Patient ID:", report_input.patient_id or "Not provided"],
         ]

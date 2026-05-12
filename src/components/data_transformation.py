@@ -148,7 +148,10 @@ class DataTransformation:
         preprocess_input = tf.keras.applications.efficientnet.preprocess_input
 
         return dataset.map(
-            lambda images, labels: (preprocess_input(tf.cast(images, tf.float32)), labels),
+            lambda images, labels: (
+                preprocess_input(tf.cast(images, tf.float32)),
+                labels,
+            ),
             num_parallel_calls=tf.data.AUTOTUNE,
         ).prefetch(tf.data.AUTOTUNE)
 
