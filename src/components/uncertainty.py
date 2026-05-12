@@ -146,6 +146,12 @@ class UncertaintyEstimator:
               -> Dropout(training=True) -> classification head -> softmax
         """
         try:
+            import tensorflow as tf
+
+            # Set fixed seeds so MC Dropout is deterministic across API and Celery processes
+            tf.random.set_seed(42)
+            np.random.seed(42)
+
             model = self._get_inference_model()
             predictions = []
 

@@ -18,7 +18,9 @@ def health_check_task() -> dict[str, str]:
     name="api.workers.tasks.generate_report_task",
     bind=True,
 )
-def generate_report_task(self, image_path: str, prediction_id: str) -> dict[str, str]:
+def generate_report_task(
+    self, image_path: str, prediction_id: str, run_inference: bool = True
+) -> dict[str, str]:
     """Generate PDF report asynchronously and cleanup temp image."""
     logger.info("Report task started for prediction %s", prediction_id)
 
@@ -28,6 +30,7 @@ def generate_report_task(self, image_path: str, prediction_id: str) -> dict[str,
         report_path = report_service.generate_report(
             image_path=image_path,
             prediction_id=prediction_id,
+            run_inference=run_inference,
         )
 
         logger.info("Report task completed: %s", report_path)

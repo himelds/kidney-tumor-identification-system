@@ -174,6 +174,19 @@ class PredictionPipeline:
                 overlay_path=Path(gradcam_result.overlay_path or overlay_path),
                 report_path=report_path,
             )
+
+            # Save the prediction result to disk for later
+            # report generation without re-running inference
+
+            import json
+
+            predictions_dir = Path("artifacts/predictions")
+            predictions_dir.mkdir(parents=True, exist_ok=True)
+            prediction_json_path = predictions_dir / f"{case_id}.json"
+            prediction_json_path.write_text(
+                json.dumps(result.to_dict(), indent=4), encoding="utf-8"
+            )
+
             logger.info("Prediction completed for case %s", case_id)
             return result
 

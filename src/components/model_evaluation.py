@@ -27,6 +27,7 @@ class ModelEvaluation:
 
     def run(self) -> dict:
         try:
+            import mlflow
             import tensorflow as tf
             from sklearn.metrics import (
                 auc,
@@ -34,6 +35,8 @@ class ModelEvaluation:
                 confusion_matrix,
                 roc_curve,
             )
+
+            mlflow.set_experiment("kidney_tumor_model_training")
 
             create_directories(
                 [
@@ -44,28 +47,49 @@ class ModelEvaluation:
                 ]
             )
 
-            # ── Load model ──────────────────────────────────────────────
-            model = self._load_model(tf)
-            logger.info("Model loaded successfully.")
+            with mlflow.start_run(run_name="model_evaluation"):
+                # ── Load model ──────────────────────────────────────────────
+                model = self._load_model(tf)
+                logger.info("Model loaded successfully.")
 
-            # ── Load test dataset ────────────────────────────────────────
-            test_ds = self._load_test_dataset(tf)
-            logger.info("Test dataset loaded.")
+                # ── Load test dataset ────────────────────────────────────────
+                test_ds = self._load_test_dataset(tf)
+                logger.info("Test dataset loaded.")
 
-            # ── Collect predictions ──────────────────────────────────────
-            y_true, y_pred_proba = self._collect_predictions(model, test_ds)
-            y_pred = np.argmax(y_pred_proba, axis=1)
+                # ── Collect predictions ──────────────────────────────────────
+                y_true, y_pred_proba = self._collect_predictions(model, test_ds)
+                y_pred = np.argmax(y_pred_proba, axis=1)
 
-            # ── Metrics ──────────────────────────────────────────────────
-            metrics = self._calculate_metrics(y_true, y_pred, y_pred_proba, classification_report)
-            self._save_metrics(metrics)
+                # ── Metrics ──────────────────────────────────────────────────
+                metrics = self._calculate_metrics(
+                    y_true, y_pred, y_pred_proba, classification_report
+                )
+                self._save_metrics(metrics)
 
-            # ── Plots ────────────────────────────────────────────────────
-            self._save_confusion_matrix(y_true, y_pred, confusion_matrix)
-            self._save_roc_curve(y_true, y_pred_proba, roc_curve, auc)
+                mlflow.log_metrics(
+                    {
+                        "test_accuracy": metrics.get("accuracy", 0.0),
+                        "test_auc_roc": metrics.get("auc_roc", 0.0),
+                        "test_sensitivity": metrics.get("sensitivity", 0.0),
+                        "test_specificity": metrics.get("specificity", 0.0),
+                        "test_f1_score": metrics.get("f1_score", 0.0),
+                        "test_precision": metrics.get("precision", 0.0),
+                    }
+                )
 
-            # ── Evaluation gate ──────────────────────────────────────────
-            self._check_evaluation_gate(metrics)
+                # ── Plots ────────────────────────────────────────────────────
+                self._save_confusion_matrix(y_true, y_pred, confusion_matrix)
+                self._save_roc_curve(y_true, y_pred_proba, roc_curve, auc)
+
+                if Path(self.config.metrics_path).exists():
+                    mlflow.log_artifact(str(self.config.metrics_path))
+                if Path(self.config.confusion_matrix_path).exists():
+                    mlflow.log_artifact(str(self.config.confusion_matrix_path))
+                if Path(self.config.roc_curve_path).exists():
+                    mlflow.log_artifact(str(self.config.roc_curve_path))
+
+                # ── Evaluation gate ──────────────────────────────────────────
+                self._check_evaluation_gate(metrics)
 
             return metrics
 

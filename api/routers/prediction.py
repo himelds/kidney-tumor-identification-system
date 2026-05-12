@@ -79,6 +79,47 @@ async def predict_image(
             cleanup_temp_file(temp_path)
 
 
+@router.post(
+    "/{prediction_id}/report",
+    status_code=status.HTTP_200_OK,
+)
+async def generate_report_from_existing(
+    prediction_id: str,
+    file: UploadFile = File(...),
+    settings: Settings = Depends(get_settings),
+):
+    """Trigger async PDF report generation from an existing prediction."""
+    temp_path: Path | None = None
+    try:
+        contents = await validate_upload(file=file, settings=settings)
+        temp_path = save_temp_file(contents=contents, settings=settings)
+
+        task = generate_report_task.delay(
+            image_path=str(temp_path),
+            prediction_id=prediction_id,
+            run_inference=False,
+        )
+        logger.info(
+            "Report generation task queued (no inference): task_id=%s, prediction_id=%s",
+            task.id,
+            prediction_id,
+        )
+
+        return {"task_id": task.id}
+    except HTTPException:
+        if temp_path:
+            cleanup_temp_file(temp_path)
+        raise
+    except Exception as exc:
+        if temp_path:
+            cleanup_temp_file(temp_path)
+        logger.exception("Failed to queue report generation for %s", prediction_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Report generation failed",
+        ) from exc
+
+
 @router.get(
     "/report/{task_id}",
     status_code=status.HTTP_200_OK,
