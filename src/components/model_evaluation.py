@@ -29,12 +29,7 @@ class ModelEvaluation:
         try:
             import mlflow
             import tensorflow as tf
-            from sklearn.metrics import (
-                auc,
-                classification_report,
-                confusion_matrix,
-                roc_curve,
-            )
+            from sklearn.metrics import auc, classification_report, confusion_matrix, roc_curve
 
             mlflow.set_experiment("kidney_tumor_model_training")
 
