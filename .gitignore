@@ -256,6 +256,8 @@ __marimo__/
 # Data, Logs, and ML
 data/*
 !data/*.dvc
+!data/reference_features.csv
+!data/current_features.csv
 mlruns/
 temp/
 *.db
