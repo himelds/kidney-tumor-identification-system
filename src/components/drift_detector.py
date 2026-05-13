@@ -3,11 +3,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from evidently import ColumnMapping
-from evidently.metric_preset import DataDriftPreset
-from evidently.report import Report
+from evidently import DataDefinition, Dataset, Report
+from evidently.presets import DataDriftPreset
 
 from src.utils.logger import logger
 
@@ -29,8 +27,9 @@ class DriftDetector:
     For CT scan images, we compare extracted features:
     - Mean pixel intensity
     - Standard deviation
-    - Contrast (CLAHE response)
-    - Brightness histogram stats
+    - Contrast
+    - Entropy
+    - Sharpness
     """
 
     def __init__(
@@ -50,7 +49,7 @@ class DriftDetector:
         """
         Load pre-extracted image feature statistics.
         These are extracted during prediction and saved as CSV.
-        Columns: mean_intensity, std_intensity, contrast, brightness_p25, brightness_p75
+        Columns: mean_intensity, std_intensity, contrast, entropy, sharpness
         """
         if not path.exists():
             raise FileNotFoundError(f"Feature stats file not found: {path}")
@@ -63,37 +62,41 @@ class DriftDetector:
         reference_df = self._load_feature_stats(self.reference_data_path)
         current_df = self._load_feature_stats(self.current_data_path)
 
-        logger.info(
-            f"Reference samples: {len(reference_df)} | " f"Current samples: {len(current_df)}"
-        )
+        logger.info(f"Reference samples: {len(reference_df)} | Current samples: {len(current_df)}")
 
         # Define which columns to monitor for drift
-        column_mapping = ColumnMapping(
-            numerical_features=[
+        data_definition = DataDefinition(
+            numerical_columns=[
                 "mean_intensity",
                 "std_intensity",
                 "contrast",
-                "brightness_p25",
-                "brightness_p75",
+                "entropy",
+                "sharpness",
             ]
         )
 
+        reference_dataset = Dataset.from_pandas(
+            reference_df,
+            data_definition=data_definition,
+        )
+
+        current_dataset = Dataset.from_pandas(
+            current_df,
+            data_definition=data_definition,
+        )
+
         # Run Evidently drift report
-        report = Report(metrics=[DataDriftPreset()])
-        report.run(
-            reference_data=reference_df,
-            current_data=current_df,
-            column_mapping=column_mapping,
+        report = Report([DataDriftPreset()])
+        result = report.run(
+            reference_data=reference_dataset,
+            current_data=current_dataset,
         )
 
         # Save HTML report
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         html_path = self.report_output_dir / f"drift_report_{timestamp}.html"
-        report.save_html(str(html_path))
+        result.save_html(str(html_path))
         logger.info(f"Drift HTML report saved: {html_path}")
-
-        # Extract results as dict
-        result = report.as_dict()
 
         # Parse drift score and drifted features
         drift_score, drifted_features = self._parse_results(result)
@@ -104,7 +107,7 @@ class DriftDetector:
         if drifted_features:
             logger.warning(f"Drifted features: {drifted_features}")
 
-        # Save JSON summary — this is what GitHub Actions will read
+        # Save JSON summary
         json_summary = {
             "drift_detected": drift_detected,
             "drift_score": round(drift_score, 4),
@@ -130,29 +133,35 @@ class DriftDetector:
             report_path=str(html_path),
         )
 
-    def _parse_results(self, result: dict) -> tuple[float, list]:
-        """Extract drift score and list of drifted features from Evidently result dict."""
+    def _parse_results(self, result) -> tuple[float, list]:
+        """Extract drift score and drifted features from Evidently 0.7.x result."""
+
         drifted_features = []
-        drift_scores = []
+        drift_score = 0.0
 
         try:
-            metrics = result.get("metrics", [])
+            result_dict = result.dict()
+            metrics = result_dict.get("metrics", [])
+
             for metric in metrics:
-                result_data = metric.get("result", {})
+                metric_name = metric.get("metric_name", "")
+                value = metric.get("value", {})
 
                 # Dataset-level drift share
-                if "dataset_drift" in result_data:
-                    dataset_drift_share = result_data.get("share_of_drifted_columns", 0.0)
-                    drift_scores.append(dataset_drift_share)
+                if "DriftedColumnsCount" in metric_name:
+                    if isinstance(value, dict):
+                        drift_score = float(value.get("share", 0.0))
 
-                # Per-feature drift
-                drift_by_columns = result_data.get("drift_by_columns", {})
-                for feature_name, feature_data in drift_by_columns.items():
-                    if feature_data.get("drift_detected", False):
-                        drifted_features.append(feature_name)
+                # Per-column drift
+                if "ValueDrift" in metric_name:
+                    config = metric.get("config", {})
+                    column = config.get("column", "")
+                    threshold = config.get("threshold", 0.1)
+
+                    if isinstance(value, float) and value > threshold:
+                        drifted_features.append(column)
 
         except Exception as e:
             logger.error(f"Error parsing Evidently results: {e}")
 
-        overall_drift_score = float(np.mean(drift_scores)) if drift_scores else 0.0
-        return overall_drift_score, drifted_features
+        return drift_score, drifted_features

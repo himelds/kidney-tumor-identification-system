@@ -1,0 +1,7 @@
+[core]
+    remote = origin
+['remote "origin"']
+    url = https://dagshub.com/himelds/kidney-tumor-identification-system.dvc
+    auth = basic
+    user = himelds
+    password = 2100dee708d0651fde00b4c28c827d5a4a3831df
