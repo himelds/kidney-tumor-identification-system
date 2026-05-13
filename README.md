@@ -4,8 +4,8 @@
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?style=flat-square&logo=python)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.13-orange?style=flat-square&logo=tensorflow)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.103-green?style=flat-square&logo=fastapi)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.27-red?style=flat-square&logo=streamlit)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.136.1-green?style=flat-square&logo=fastapi)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.57-red?style=flat-square&logo=streamlit)
 ![Docker](https://img.shields.io/badge/Docker-ready-blue?style=flat-square&logo=docker)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
