@@ -30,6 +30,7 @@ pydantic
 pydantic-settings
 celery
 redis
+supabase
 
 # Streamlit
 streamlit

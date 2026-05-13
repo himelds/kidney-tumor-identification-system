@@ -25,6 +25,14 @@ def get_prediction_service() -> PredictionService:
 
 
 @lru_cache(maxsize=1)
-def get_storage_service() -> StorageService:
-    """Return the cached storage service instance."""
-    return StorageService(db_path=get_settings().database_path)
+def get_storage_service():
+    settings = get_settings()
+
+    if settings.supabase_url and settings.supabase_key:
+        from api.services.supabase_storage_service import SupabaseStorageService
+
+        return SupabaseStorageService(
+            url=settings.supabase_url,
+            key=settings.supabase_key,
+        )
+    return StorageService(db_path=settings.database_path)

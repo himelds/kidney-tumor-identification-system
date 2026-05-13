@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     allowed_image_types: list[str] = Field(default=["image/jpeg", "image/png", "image/jpg"])
     temp_dir: str = Field(default="temp/uploads")
     redis_url: str = Field(default="redis://localhost:6379/0")
+    supabase_url: str = Field(default="")
+    supabase_key: str = Field(default="")
 
     model_config = SettingsConfigDict(
         env_file=".env",
