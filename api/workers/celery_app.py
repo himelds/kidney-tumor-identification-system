@@ -1,3 +1,5 @@
+import ssl
+
 from celery import Celery
 
 from api.dependencies import get_settings
@@ -22,7 +24,9 @@ celery_app.conf.update(
     task_soft_time_limit=25 * 60,
     result_expires=60 * 60 * 24,
     worker_prefetch_multiplier=1,
+    # SSL config for rediss://
+    broker_use_ssl={"ssl_cert_reqs": ssl.CERT_NONE},
+    redis_backend_use_ssl={"ssl_cert_reqs": ssl.CERT_NONE},
 )
-
 
 __all__ = ["celery_app"]
