@@ -254,7 +254,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Data, Logs, and ML
-data/
+data/*
+!data/*.dvc
 mlruns/
 temp/
 *.db
