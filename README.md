@@ -200,21 +200,33 @@ kidney-tumor-identification-system/
 │   │   ├── report_generator.py
 │   │   ├── feature_extractor.py
 │   │   └── drift_detector.py
+│   ├── config/              # Configuration manager
+│   ├── constants/           # Project constants
+│   ├── entity/              # Config dataclasses
 │   ├── pipeline/            # Pipeline stages
 │   └── utils/               # Logger, exceptions, common utils
 ├── api/                     # FastAPI backend
+│   ├── middleware/
 │   ├── routers/
+│   ├── schemas/
 │   ├── services/
+│   ├── utils/
 │   ├── workers/             # Celery async tasks
 │   └── Dockerfile
 ├── app/                     # Streamlit frontend
 │   ├── components/
 │   └── Dockerfile
 ├── docker/                  # Docker compose files
+├── scripts/                 # Utility scripts
+│   ├── generate_reference_features.py
+│   └── test_drift_detection.py
+├── data/                    # DVC-tracked data pointers
 ├── .github/workflows/       # CI/CD pipelines
 ├── tests/                   # Unit and integration tests
 ├── config/config.yaml       # Project configuration
 ├── params.yaml              # Training hyperparameters
+├── dvc.yaml                 # DVC pipeline definition
+├── docker-compose.yml       # Docker Compose
 └── Makefile                 # Common commands
 ```
 
