@@ -30,6 +30,8 @@ jobs:
 
       - name: Run drift check
         id: drift_check
+        env:
+          PYTHONPATH: .
         run: |
           # Run the existing drift detection script and capture output
           OUTPUT=$(python scripts/test_drift_detection.py)
