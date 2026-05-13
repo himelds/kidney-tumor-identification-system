@@ -158,7 +158,7 @@ git clone https://github.com/himelds/kidney-tumor-identification-system.git
 cd kidney-tumor-identification-system
 
 # Setup
-conda create -n kidney-tumor python=3.10 -y
+conda create -n kidney-tumor python=3.11 -y
 conda activate kidney-tumor
 make install
 
