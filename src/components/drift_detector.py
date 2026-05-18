@@ -36,7 +36,7 @@ class DriftDetector:
         self,
         reference_data_path: str,
         current_data_path: str,
-        drift_threshold: float = 0.15,
+        drift_threshold: float = 0.6,
         report_output_dir: str = "reports/drift",
     ):
         self.reference_data_path = Path(reference_data_path)
@@ -100,7 +100,8 @@ class DriftDetector:
 
         # Parse drift score and drifted features
         drift_score, drifted_features = self._parse_results(result)
-        drift_detected = drift_score > self.drift_threshold
+
+        drift_detected = drift_score >= self.drift_threshold and len(current_df) >= 100
 
         logger.info(f"Drift score: {drift_score:.4f} | Threshold: {self.drift_threshold}")
         logger.info(f"Drift detected: {drift_detected}")
