@@ -139,3 +139,4 @@ data/*
 !data/*.dvc
 !data/reference_features.csv
 !data/current_features.csv
+.dvc/config.local
