@@ -7,7 +7,7 @@ from components.upload import render_upload_section
 
 st.set_page_config(
     page_title="Kidney Tumor ID System",
-    page_icon="🩻",
+    page_icon="🫘",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -16,7 +16,7 @@ st.set_page_config(
 def main():
     # Sidebar
     with st.sidebar:
-        st.title("🩻 Kidney AI")
+        st.title("🫘 Kidney AI")
         st.markdown("---")
 
         # Navigation

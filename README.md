@@ -1,4 +1,4 @@
-# 🩻 Kidney Tumor Identification System
+# 🫘 Kidney Tumor Identification System
 
 <div align="center">
 
